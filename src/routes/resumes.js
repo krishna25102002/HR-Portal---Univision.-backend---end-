@@ -1,0 +1,108 @@
+import express from 'express';
+import multer from 'multer';
+import {
+  uploadResume,
+  getResumeByCandidate,
+  getResume,
+} from '../controllers/resumeController.js';
+
+const router = express.Router();
+
+const storage = multer.diskStorage({
+  destination: 'uploads/',
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + '-' + file.originalname);
+  },
+});
+
+const fileFilter = (req, file, cb) => {
+  const allowed = [
+    'application/pdf',
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  ];
+
+  if (!allowed.includes(file.mimetype)) {
+    return cb(new Error('Only PDF/DOC/DOCX allowed'), false);
+  }
+  cb(null, true);
+};
+
+const upload = multer({ storage, fileFilter });
+
+router.post('/upload', upload.single('resume'), uploadResume);
+router.get('/candidate/:candidateId', getResumeByCandidate);
+router.get('/:id', getResume);
+
+export default router;
+
+// import express from 'express';
+// import multer from 'multer';
+// import {
+//   uploadResume,
+//   getResumeByCandidate,
+//   getResume,
+// } from '../controllers/resumeController.js';
+
+// const router = express.Router();
+
+// const storage = multer.diskStorage({
+//   destination: 'uploads/',
+//   filename: (req, file, cb) => {
+//     cb(null, Date.now() + '-' + file.originalname);
+//   },
+// });
+
+// const fileFilter = (req, file, cb) => {
+//   const allowed = [
+//     'application/pdf',
+//     'application/msword',
+//     'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+//   ];
+
+//   if (!allowed.includes(file.mimetype)) {
+//     cb(new Error('Only PDF or DOCX files are allowed'), false);
+//   } else {
+//     cb(null, true);
+//   }
+// };
+
+// const upload = multer({ storage, fileFilter });
+
+// router.post('/upload', upload.single('resume'), uploadResume);
+// router.get('/candidate/:candidateId', getResumeByCandidate);
+// router.get('/:id', getResume);
+
+// export default router;
+
+// // import express from 'express';
+// // import multer from 'multer';
+// // import {
+// //   uploadResume,
+// //   getResumeByCandidate,
+// //   getResume,
+// // } from '../controllers/resumeController.js';
+
+// // const router = express.Router();
+// // const upload = multer({ dest: 'uploads/' });
+
+// // router.post('/upload', upload.single('resume'), uploadResume);
+// // router.get('/candidate/:candidateId', getResumeByCandidate);
+// // router.get('/:id', getResume);
+
+// // export default router;
+
+
+
+// // const express = require('express');
+// // const multer = require('multer');
+// // const resumeController = require('../controllers/resumeController');
+
+// // const router = express.Router();
+// // const upload = multer({ storage: multer.memoryStorage() });
+
+// // router.post('/upload', upload.single('resume'), resumeController.uploadResume);
+// // router.get('/candidate/:candidateId', resumeController.getResumeByCandidate);
+// // router.get('/:id', resumeController.getResume);
+
+// // module.exports = router;
