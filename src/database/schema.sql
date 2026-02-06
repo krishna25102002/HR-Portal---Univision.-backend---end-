@@ -2,8 +2,8 @@
 -- HR PORTAL SCHEMA (BACKWARD COMPATIBLE)
 -- =====================================================
 
-CREATE DATABASE IF NOT EXISTS hrportal;
-USE hrportal;
+-- CREATE DATABASE IF NOT EXISTS hrportal;
+-- USE hrportal;
 
 -- =====================================================
 -- USERS TABLE (NO BREAKING CHANGES)
@@ -206,6 +206,16 @@ CREATE INDEX IF NOT EXISTS idx_interviews_candidate_date
 
 CREATE INDEX IF NOT EXISTS idx_scores_decision
   ON interview_scores(decision);
+
+
+CREATE TABLE resume_versions (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  candidate_id INT NOT NULL,
+  resume_file_path VARCHAR(500),
+  updated_by INT,
+  updated_by_name VARCHAR(255),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 
 -- -- ================================
 -- -- HR PORTAL DATABASE SCHEMA

@@ -13,102 +13,184 @@ libre.convertAsync = util.promisify(libre.convert);
  * ===============================
  */
 export const uploadResume = async (req, res) => {
-  const parsed = await parseResume(req.file.path);
+  try {
+    const { id: hrId, name: hrName } = req.user;
+    const { candidate_id } = req.body;
 
-  await pool.query(
-    `UPDATE candidates SET
-      custom_first_name=?,
-      custom_last_name=?,
-      email_id=?,
-      phone_number=?,
-      skills=?,
-      education=?
-     WHERE id=?`,
-    [
-      parsed.firstName,
-      parsed.lastName || null,
-      parsed.email || null,
-      parsed.phone || null,
-      parsed.skills || null,
-      parsed.education || null,
-      req.body.candidate_id,
-    ]
-  );
-   res.json(parsed);
+    if (!req.file) {
+      return res.status(400).json({ error: "Resume file required" });
+    }
+
+    // 1️⃣ Parse resume using AI
+    const parsed = await parseResume(req.file.path);
+
+    // 2️⃣ Update candidate data
+    await pool.query(
+      `UPDATE candidates SET
+        custom_first_name=?,
+        custom_last_name=?,
+        email_id=?,
+        phone_number=?,
+        skills=?,
+        education=?,
+        updated_by=?,
+        updated_by_name=?
+       WHERE id=?`,
+      [
+        parsed.firstName || null,
+        parsed.lastName || null,
+        parsed.email || null,
+        parsed.phone || null,
+        parsed.skills || null,
+        parsed.education || null,
+        hrId,
+        hrName,
+        candidate_id
+      ]
+    );
+
+    // 3️⃣ Save resume version (THIS IS WHAT WAS MISSING)
+    await pool.query(
+      `INSERT INTO resume_versions
+       (candidate_id, resume_file_path, updated_by, updated_by_name)
+       VALUES (?, ?, ?, ?)`,
+      [
+        candidate_id,
+        req.file.path,
+        hrId,
+        hrName
+      ]
+    );
+
+    res.json({
+      message: "Resume uploaded, parsed, and saved successfully",
+      parsed
+    });
+
+  } catch (err) {
+    console.error("Upload resume error:", err);
+    res.status(500).json({ error: "Resume upload failed" });
+  }
 };
+
 // export const uploadResume = async (req, res) => {
 //   try {
+//     const hrId = req.user.id;
+//     const hrName = req.user.name;
+//     const candidateId = req.body.candidate_id;
+
 //     if (!req.file) {
-//       return res.status(400).json({ error: 'No resume file uploaded' });
+//       return res.status(400).json({ error: "Resume file required" });
 //     }
 
-//     const { candidateId } = req.body;
-//     const inputPath = req.file.path;
-//     const ext = path.extname(inputPath).toLowerCase();
+//     // 🔍 Parse resume (KEEP YOUR EXISTING LOGIC)
+//     // const parsed = await parseResume(req.file.path);
+//       fd.append("candidate_id", candidateId);
+//       const res = await api.post("/resumes/upload", fd);
 
-//     let pdfPath = inputPath;
-
-//     /**
-//      * DOCX → PDF
-//      */
-//     if (ext === '.docx' || ext === '.doc') {
-//       const docBuffer = fs.readFileSync(inputPath);
-//       const pdfBuffer = await libre.convertAsync(docBuffer, '.pdf', undefined);
-
-//       pdfPath = inputPath.replace(ext, '.pdf');
-//       fs.writeFileSync(pdfPath, pdfBuffer);
-//     }
-
-//     /**
-//      * DOCUMENT AI
-//      */
-//     const extractedText = await parseResume(pdfPath);
-
-//     /**
-//      * SAVE METADATA
-//      */
+//     // ✅ Update candidate fields
 //     await pool.query(
-//       `
-//       INSERT INTO resumes (candidate_id, file_name, file_path)
-//       VALUES (?, ?, ?)
-//       `,
+//       `UPDATE candidates SET
+//         custom_first_name=?,
+//         custom_last_name=?,
+//         email_id=?,
+//         phone_number=?,
+//         skills=?,
+//         education=?,
+//         updated_by=?,
+//         updated_by_name=?
+//       WHERE id=?`,
 //       [
-//         candidateId || null,
-//         req.file.originalname,
-//         pdfPath,
+//         parsed.firstName,
+//         parsed.lastName || null,
+//         parsed.email || null,
+//         parsed.phone || null,
+//         parsed.skills || null,
+//         parsed.education || null,
+//         hrId,
+//         hrName,
+//         candidateId,
 //       ]
 //     );
 
-//     /**
-//      * CLEANUP
-//      */
-//     fs.unlinkSync(inputPath);
-//     if (pdfPath !== inputPath) fs.unlinkSync(pdfPath);
+//     // ✅ SAVE RESUME VERSION (NEW)
+//     await pool.query(
+//       `INSERT INTO resume_versions
+//        (candidate_id, resume_file_path, updated_by, updated_by_name)
+//        VALUES (?, ?, ?, ?)`,
+//       [
+//         candidateId,
+//         req.file.path,
+//         hrId,
+//         hrName
+//       ]
+//     );
+//       console.log("Resume saved for candidate:", candidateId);
 
 //     res.json({
-//       success: true,
-//       message: 'Resume uploaded and parsed successfully',
-//       extractedText,
+//       message: "Resume uploaded & saved successfully",
+//       parsed
 //     });
 
-//   } catch (error) {
-//     console.error('Resume parsing error:', error);
-//     res.status(500).json({
-//       error: 'Resume parsing failed',
-//       details: error.message,
-//     });
+//   } catch (err) {
+//     console.error("Resume upload error:", err);
+//     res.status(500).json({ error: "Resume upload failed" });
 //   }
+// };
+
+// export const uploadResume = async (req, res) => {
+//   const parsed = await parseResume(req.file.path);
+
+//   await pool.query(
+//     `UPDATE candidates SET
+//       custom_first_name=?,
+//       custom_last_name=?,
+//       email_id=?,
+//       phone_number=?,
+//       skills=?,
+//       education=?
+//      WHERE id=?`,
+//     [
+//       parsed.firstName,
+//       parsed.lastName || null,
+//       parsed.email || null,
+//       parsed.phone || null,
+//       parsed.skills || null,
+//       parsed.education || null,
+//       req.body.candidate_id,
+//     ]
+//   );
+//    res.json(parsed);
 // };
 
 /**
  * ===============================
  * GET RESUMES BY CANDIDATE
  * ===============================
- */
+//  */
+// export const getResumeByCandidate = async (req, res) => {
+//   try {
+//     const [rows] = await pool.query(
+//       'SELECT * FROM resumes WHERE candidate_id = ?',
+//       [req.params.candidateId]
+//     );
+
+//     res.json(rows);
+//   } catch (error) {
+//     res.status(500).json({ error: error.message });
+//   }
+// };
 export const getResumeByCandidate = async (req, res) => {
   try {
     const [rows] = await pool.query(
-      'SELECT * FROM resumes WHERE candidate_id = ?',
+      `SELECT
+        id,
+        resume_file_path,
+        updated_by_name,
+        created_at
+       FROM resume_versions
+       WHERE candidate_id = ?
+       ORDER BY created_at DESC`,
       [req.params.candidateId]
     );
 
@@ -123,22 +205,22 @@ export const getResumeByCandidate = async (req, res) => {
  * GET RESUME BY ID
  * ===============================
  */
-export const getResume = async (req, res) => {
-  try {
-    const [rows] = await pool.query(
-      'SELECT * FROM resumes WHERE id = ?',
-      [req.params.id]
-    );
+// export const getResume = async (req, res) => {
+//   try {
+//     const [rows] = await pool.query(
+//       'SELECT * FROM resumes WHERE id = ?',
+//       [req.params.id]
+//     );
 
-    if (!rows.length) {
-      return res.status(404).json({ error: 'Resume not found' });
-    }
+//     if (!rows.length) {
+//       return res.status(404).json({ error: 'Resume not found' });
+//     }
 
-    res.json(rows[0]);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
+//     res.json(rows[0]);
+//   } catch (error) {
+//     res.status(500).json({ error: error.message });
+//   }
+// };
 
 // import pool from '../config/database.js';
 
@@ -283,3 +365,80 @@ export const getResume = async (req, res) => {
 // //     res.status(500).json({ error: error.message });
 // //   }
 // // };
+export const getResume = async (req, res) => {
+  try {
+    const [rows] = await pool.query(
+      'SELECT * FROM resume_versions WHERE id = ?',
+      [req.params.id]
+    );
+
+    if (!rows.length) {
+      return res.status(404).json({ error: 'Resume not found' });
+    }
+
+    res.json(rows[0]);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+/**
+ * ===============================
+ * GET ALL RESUME UPDATES (for Profile page)
+ * ===============================
+ */
+export const getAllResumeUpdates = async (req, res) => {
+  try {
+    const [rows] = await pool.query(
+      `
+      SELECT
+        rv.id,
+        rv.candidate_id,
+        rv.resume_file_path,
+        rv.updated_by_name,
+        rv.created_at,
+        c.custom_first_name AS first_name,
+        c.custom_last_name AS last_name
+      FROM resume_versions rv
+      JOIN candidates c ON c.id = rv.candidate_id
+      ORDER BY rv.created_at DESC
+      `
+    );
+
+    res.json(rows);
+  } catch (err) {
+    console.error("getAllResumeUpdates error:", err);
+    res.status(500).json({ error: "Failed to fetch resume updates" });
+  }
+};
+
+
+/**
+ * ===============================
+ * DOWNLOAD RESUME FILE
+ * ===============================
+ */
+export const downloadResume = async (req, res) => {
+  try {
+    const [rows] = await pool.query(
+      "SELECT resume_file_path FROM resume_versions WHERE id = ?",
+      [req.params.id]
+    );
+
+    if (!rows.length) {
+      return res.status(404).json({ error: "Resume not found" });
+    }
+
+    const filePath = rows[0].resume_file_path;
+
+    res.download(filePath, (err) => {
+      if (err) {
+        console.error("Download error:", err);
+        res.status(500).json({ error: "Failed to download resume" });
+      }
+    });
+  } catch (err) {
+    console.error("downloadResume error:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+};
