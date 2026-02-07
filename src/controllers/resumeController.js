@@ -37,15 +37,15 @@ export const uploadResume = async (req, res) => {
         updated_by_name=?
        WHERE id=?`,
       [
-        parsed.firstName || null,
-        parsed.lastName || null,
-        parsed.email || null,
-        parsed.phone || null,
-        parsed.skills || null,
-        parsed.education || null,
-        hrId,
-        hrName,
-        candidate_id
+        parsed.first_name || null,
+    parsed.last_name || null,
+    parsed.email_id || null,
+    parsed.phone_number || null,
+    Array.isArray(parsed.skills) ? parsed.skills.join(", ") : parsed.skills,
+    Array.isArray(parsed.education) ? parsed.education.join(" ") : parsed.education,
+    hrId,
+    hrName,
+    candidate_id
       ]
     );
 
