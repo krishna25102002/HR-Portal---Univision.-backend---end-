@@ -15,7 +15,7 @@ import emailRoutes from "./routes/emails.js";
 import authRoutes from "./routes/auth.js";
 import interviewerRoutes from "./routes/interviewers.js";
 import adminRoutes from "./routes/admin.js";
-
+import profileRoutes from "./routes/profileRoutes.js";
 /* ================= BASIC SETUP ================= */
 
 dotenv.config();
@@ -80,7 +80,7 @@ app.use("/api/emails", emailRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/interviewers", interviewerRoutes);
 app.use("/api/admin", adminRoutes);
-
+app.use("/api/profile", profileRoutes);
 /* ================= HEALTH CHECK ================= */
 
 app.get("/api/health", (req, res) => {

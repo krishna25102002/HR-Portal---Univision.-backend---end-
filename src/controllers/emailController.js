@@ -1,4 +1,5 @@
 import { sendMailViaGraph } from "../utils/sendMailGraph.js";
+import { createTeamsMeeting } from "../utils/createTeamsMeeting.js";
 
 /* ================= EMAIL TEMPLATES ================= */
 
@@ -52,29 +53,30 @@ export const sendInterviewEmail = async (req, res) => {
   try {
     const {
       candidate_email,
-      interview_date,
-      interview_type,
+      scheduled_date,
       interviewer,
-      meetingLink,
-      candidateName
+      candidateName,
     } = req.body;
 
-    console.log("📧 Sending interview email via Graph to:", candidate_email);
+    console.log("📅 Scheduled date:", scheduled_date);
 
-    const html =
-      interview_type === "Teams"
-        ? teamsInterviewTemplate({
-            candidateName,
-            interviewDate: interview_date,
-            interviewer,
-            meetingLink,
-          })
-        : googleMeetInterviewTemplate({
-            candidateName,
-            interviewDate: interview_date,
-            interviewer,
-            meetingLink,
-          });
+    const meetingLink = await createTeamsMeeting({
+      subject: `Interview with ${candidateName}`,
+      startDateTime: new Date(scheduled_date).toISOString(),
+      endDateTime: new Date(
+        new Date(scheduled_date).getTime() + 30 * 60000
+      ).toISOString(),
+      attendeesEmails: [candidate_email],
+    });
+
+    console.log("🔗 Final Teams Link:", meetingLink);
+
+    const html = teamsInterviewTemplate({
+      candidateName,
+      interviewDate: scheduled_date,
+      interviewer,
+      meetingLink,
+    });
 
     await sendMailViaGraph({
       to: candidate_email,
@@ -82,14 +84,60 @@ export const sendInterviewEmail = async (req, res) => {
       html,
     });
 
-    console.log("✅ Interview email sent via Graph");
-    res.json({ message: "Interview email sent successfully" });
+    res.json({
+      message: "Interview email sent with Teams meeting link",
+      meetingLink,
+    });
 
   } catch (error) {
-    console.error("❌ Graph email error:", error.response?.data || error);
-    res.status(500).json({ error: "Failed to send interview email" });
+    console.error("❌ Error:", error);
+    res.status(500).json({ error: error.message });
   }
 };
+
+
+// export const sendInterviewEmail = async (req, res) => {
+//   try {
+//     const {
+//       candidate_email,
+//       interview_date,
+//       interview_type,
+//       interviewer,
+//       meetingLink,
+//       candidateName
+//     } = req.body;
+
+//     console.log("📧 Sending interview email via Graph to:", candidate_email);
+
+//     const html =
+//       interview_type === "Teams"
+//         ? teamsInterviewTemplate({
+//             candidateName,
+//             interviewDate: interview_date,
+//             interviewer,
+//             meetingLink,
+//           })
+//         : googleMeetInterviewTemplate({
+//             candidateName,
+//             interviewDate: interview_date,
+//             interviewer,
+//             meetingLink,
+//           });
+
+//     await sendMailViaGraph({
+//       to: candidate_email,
+//       subject: "Univision: Interview Scheduled",
+//       html,
+//     });
+
+//     console.log("✅ Interview email sent via Graph");
+//     res.json({ message: "Interview email sent successfully" });
+
+//   } catch (error) {
+//     console.error("❌ Graph email error:", error.response?.data || error);
+//     res.status(500).json({ error: "Failed to send interview email" });
+//   }
+// };
 
 // import { gmailTransporter } from '../config/email.js';
 

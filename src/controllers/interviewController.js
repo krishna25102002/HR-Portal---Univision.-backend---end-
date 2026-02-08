@@ -154,6 +154,50 @@ export const updateInterview = async (req, res) => {
   res.json({ message: 'Interview updated successfully' });
 };
 
+
+export const updateStatus = async (req, res) => {
+  try {
+    const { id: hrId, name: hrName } = req.user;
+    const { interviewId } = req.params;
+    const { status } = req.body;
+
+    // 1️⃣ Get old status
+    const [[oldRow]] = await pool.query(
+      `SELECT status, candidate_id FROM interviews WHERE id = ?`,
+      [interviewId]
+    );
+
+    // 2️⃣ Update interview status
+    await pool.query(
+      `UPDATE interviews SET status = ? WHERE id = ?`,
+      [status, interviewId]
+    );
+
+    // 3️⃣ INSERT STATUS ACTIVITY LOG  🔥🔥🔥
+    await pool.query(
+      `
+      INSERT INTO status_activity_logs
+      (candidate_id, action, old_data, new_data, performed_by)
+      VALUES (?, ?, ?, ?, ?)
+      `,
+      [
+    oldRow.candidate_id,
+    newStatus,            // action
+    oldRow.status,        // old_data
+    newStatus,            // new_data
+    req.user.id           // HR id
+  ]
+    );
+
+    res.json({ message: "Status updated & logged successfully" });
+
+  } catch (err) {
+    console.error("updateStatus error:", err);
+    res.status(500).json({ error: "Failed to update status" });
+  }
+};
+
+
 // /* ================= UPDATE INTERVIEW STATUS (🔥 FIX HERE) ================= */
 
 // export const updateInterviewStatus = async (req, res) => {

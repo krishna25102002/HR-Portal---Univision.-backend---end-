@@ -54,13 +54,17 @@ CREATE TABLE IF NOT EXISTS candidates (
   notice_period VARCHAR(50),
   position VARCHAR(255),
 
-  status ENUM(
-    'applied',
-    'invitation_sent',
-    'shortlisted',
-    'offered',
-    'rejected'
-  ) NOT NULL DEFAULT 'applied',
+ status ENUM(
+  'applied',
+  'shortlisted',
+  'interview',
+  'invitation_sent',
+  'hold',
+  'offered',
+  'accepted',
+  'rejected'
+) NOT NULL DEFAULT 'applied';
+
 
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -215,6 +219,22 @@ CREATE TABLE resume_versions (
   updated_by INT,
   updated_by_name VARCHAR(255),
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE candidate_status_logs (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  candidate_id INT NOT NULL,
+  hr_id INT NOT NULL,
+  status ENUM(
+    'applied',
+    'hold',
+    'invitation_sent',
+    'rejected'
+  ) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+  FOREIGN KEY (candidate_id) REFERENCES candidates(id),
+  FOREIGN KEY (hr_id) REFERENCES users(id)
 );
 
 -- -- ================================

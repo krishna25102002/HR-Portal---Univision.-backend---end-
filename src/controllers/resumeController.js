@@ -389,6 +389,8 @@ export const getResume = async (req, res) => {
  */
 export const getAllResumeUpdates = async (req, res) => {
   try {
+    const hrId = req.user.id; // 🔥 logged-in HR
+
     const [rows] = await pool.query(
       `
       SELECT
@@ -397,12 +399,21 @@ export const getAllResumeUpdates = async (req, res) => {
         rv.resume_file_path,
         rv.updated_by_name,
         rv.created_at,
-        c.custom_first_name AS first_name,
-        c.custom_last_name AS last_name
+
+        CONCAT(
+          COALESCE(c.custom_first_name, ''),
+          ' ',
+          COALESCE(c.custom_last_name, '')
+        ) AS candidate_name,
+
+        NULL AS candidate_role
+
       FROM resume_versions rv
       JOIN candidates c ON c.id = rv.candidate_id
+      WHERE rv.updated_by = ?          -- 🔥 FILTER BY HR
       ORDER BY rv.created_at DESC
-      `
+      `,
+      [hrId]
     );
 
     res.json(rows);
@@ -411,6 +422,31 @@ export const getAllResumeUpdates = async (req, res) => {
     res.status(500).json({ error: "Failed to fetch resume updates" });
   }
 };
+
+// export const getAllResumeUpdates = async (req, res) => {
+//   try {
+//     const [rows] = await pool.query(
+//       `
+//       SELECT
+//         rv.id,
+//         rv.candidate_id,
+//         rv.resume_file_path,
+//         rv.updated_by_name,
+//         rv.created_at,
+//         c.custom_first_name AS first_name,
+//         c.custom_last_name AS last_name
+//       FROM resume_versions rv
+//       JOIN candidates c ON c.id = rv.candidate_id
+//       ORDER BY rv.created_at DESC
+//       `
+//     );
+
+//     res.json(rows);
+//   } catch (err) {
+//     console.error("getAllResumeUpdates error:", err);
+//     res.status(500).json({ error: "Failed to fetch resume updates" });
+//   }
+// };
 
 
 /**
