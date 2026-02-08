@@ -31,7 +31,7 @@ export const createTeamsMeeting = async ({
     }
   );
 
-  console.log("🔗 Teams Link:", response.data.onlineMeeting?.joinUrl);
+  // console.log("🔗 Teams Link:", response.data.onlineMeeting?.joinUrl);
 
   return response.data.onlineMeeting?.joinUrl;
 };

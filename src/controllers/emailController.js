@@ -53,12 +53,17 @@ export const sendInterviewEmail = async (req, res) => {
   try {
     const {
       candidate_email,
+      interviewer_email,
       scheduled_date,
+      interview_type,
       interviewer,
-      candidateName,
+      candidateName
     } = req.body;
 
-    console.log("📅 Scheduled date:", scheduled_date);
+    console.log("📧 FINAL EMAIL SEND DATA", {
+      to: candidate_email,
+      cc: interviewer_email ? [interviewer_email] : [],
+    });
 
     const meetingLink = await createTeamsMeeting({
       subject: `Interview with ${candidateName}`,
@@ -69,8 +74,6 @@ export const sendInterviewEmail = async (req, res) => {
       attendeesEmails: [candidate_email],
     });
 
-    console.log("🔗 Final Teams Link:", meetingLink);
-
     const html = teamsInterviewTemplate({
       candidateName,
       interviewDate: scheduled_date,
@@ -80,6 +83,7 @@ export const sendInterviewEmail = async (req, res) => {
 
     await sendMailViaGraph({
       to: candidate_email,
+      cc: interviewer_email ? [interviewer_email] : [],
       subject: "Univision: Interview Scheduled",
       html,
     });
@@ -94,6 +98,61 @@ export const sendInterviewEmail = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+// export const sendInterviewEmail = async (req, res) => {
+//   try {
+//    const {
+//   candidate_email,
+//   interviewer_email, // 👈 NEW
+//   scheduled_date,
+//   interview_type,
+//   interviewer,
+//   candidateName
+// } = req.body;
+
+//     // console.log("📅 Scheduled date:", scheduled_date);
+
+//     const meetingLink = await createTeamsMeeting({
+//       subject: `Interview with ${candidateName}`,
+//       startDateTime: new Date(scheduled_date).toISOString(),
+//       endDateTime: new Date(
+//         new Date(scheduled_date).getTime() + 30 * 60000
+//       ).toISOString(),
+//       attendeesEmails: [candidate_email],
+//     });
+
+//     // console.log("🔗 Final Teams Link:", meetingLink);
+
+//     const html = teamsInterviewTemplate({
+//       candidateName,
+//       interviewDate: scheduled_date,
+//       interviewer,
+//       meetingLink,
+//     });
+
+//     await sendMailViaGraph({
+//   to: candidate_email,
+//   cc: interviewer_email ? [interviewer_email] : [],
+//   subject: "Univision: Interview Scheduled",
+//   html,
+// });
+//     // await sendMailViaGraph({
+//     //   to: candidate_email,
+//     //   subject: "Univision: Interview Scheduled",
+//     //   html,
+//     // });
+
+//     res.json({
+//       message: "Interview email sent with Teams meeting link",
+//       meetingLink,
+//     });
+
+//   } catch (error) {
+//     console.error("❌ Error:", error);
+//     res.status(500).json({ error: error.message });
+//   }
+
+// };
 
 
 // export const sendInterviewEmail = async (req, res) => {
