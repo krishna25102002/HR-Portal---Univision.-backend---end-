@@ -26,5 +26,4 @@ Thumbs.db
 
 
 # Google / Azure / Service account keys
-*.json
 documentai-key.json
