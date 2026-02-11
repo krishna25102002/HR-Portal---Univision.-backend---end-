@@ -168,19 +168,38 @@ function extractJSON(text) {
 }
 
 /* ================= OTHER EXISTING FEATURES (UNCHANGED) ================= */
-
 export const parseResumeController = async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: "Resume file missing" });
     }
-    const parsedData = await parseResume(req.file.path);
+
+    // 🔥 IMPORTANT CHANGE
+    const parsedData = await parseResume(
+      req.file.buffer,
+      req.file.mimetype
+    );
+
     res.json(parsedData);
+
   } catch (err) {
     console.error("Resume parsing error:", err);
     res.status(500).json({ error: "Resume parsing failed" });
   }
 };
+
+// export const parseResumeController = async (req, res) => {
+//   try {
+//     if (!req.file) {
+//       return res.status(400).json({ error: "Resume file missing" });
+//     }
+//     const parsedData = await parseResume(req.file.path);
+//     res.json(parsedData);
+//   } catch (err) {
+//     console.error("Resume parsing error:", err);
+//     res.status(500).json({ error: "Resume parsing failed" });
+//   }
+// };
 
 export const analyzeResumeForJD = async (req, res) => {
   try {
