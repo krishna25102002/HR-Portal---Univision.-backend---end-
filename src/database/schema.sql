@@ -56,15 +56,14 @@ CREATE TABLE IF NOT EXISTS candidates (
 
  status ENUM(
   'applied',
-  'shortlisted',
   'interview',
   'invitation_sent',
   'hold',
   'offered',
   'accepted',
   'rejected'
-) NOT NULL DEFAULT 'applied',
-
+) NOT NULL DEFAULT 'applied';
+ 
 
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -226,11 +225,15 @@ CREATE TABLE candidate_status_logs (
   candidate_id INT NOT NULL,
   hr_id INT NOT NULL,
   status ENUM(
-    'applied',
-    'hold',
-    'invitation_sent',
-    'rejected'
-  ) NOT NULL,
+   'applied',
+  'interview',
+  'invitation_sent',
+  'hold',
+  'offered',
+  'accepted',
+  'rejected'
+  ) NOT NULL;
+
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
   FOREIGN KEY (candidate_id) REFERENCES candidates(id),

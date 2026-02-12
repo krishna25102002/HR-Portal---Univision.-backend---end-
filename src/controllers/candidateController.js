@@ -225,8 +225,17 @@ export const updateCandidate = async (req, res) => {
         hrId,
         hrName,
         req.params.id
-      ]
+      ],
     );
+
+      // 🔥 Insert status log
+        await pool.query(
+          `
+          INSERT INTO candidate_status_logs (candidate_id, hr_id, status)
+          VALUES (?, ?, ?)
+          `,
+          [req.params.id, hrId, status || "applied"]
+            );
 
     res.json({ success: true });
   } catch (err) {

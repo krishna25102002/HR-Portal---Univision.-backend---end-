@@ -57,17 +57,36 @@ ${resumeText}
 
 /* ================= STEP 1: UPLOAD & EXTRACT ================= */
 
+// export const convertResumeFormatController = async (req, res) => {
+//   try {
+//     if (!req.file) {
+//       return res.status(400).json({ error: "Resume file missing" });
+//     }
+
+//     const buffer = fs.readFileSync(req.file.path);
+//     const resumeText = await extractResumeText(buffer);
+//     const fields = await extractFieldsWithAI(resumeText);
+
+//     res.json({ success: true, fields });
+//   } catch (err) {
+//     console.error("Resume extraction error:", err);
+//     res.status(500).json({ error: "Resume extraction failed" });
+//   }
+// };
 export const convertResumeFormatController = async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: "Resume file missing" });
     }
 
-    const buffer = fs.readFileSync(req.file.path);
+    // ✅ FIX HERE
+    const buffer = req.file.buffer;
+
     const resumeText = await extractResumeText(buffer);
     const fields = await extractFieldsWithAI(resumeText);
 
     res.json({ success: true, fields });
+
   } catch (err) {
     console.error("Resume extraction error:", err);
     res.status(500).json({ error: "Resume extraction failed" });
