@@ -63,7 +63,7 @@ CREATE TABLE IF NOT EXISTS candidates (
   'offered',
   'accepted',
   'rejected'
-) NOT NULL DEFAULT 'applied';
+) NOT NULL DEFAULT 'applied',
 
 
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
