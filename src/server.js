@@ -27,8 +27,9 @@ const __dirname = path.dirname(__filename);
 /* ================= CORS CONFIG (FINAL FIX) ================= */
 
 const allowedOrigins = [
-  "http://localhost:3000",                // local frontend
-  "https://recruiter.tarassolutions.com"  // backend domain
+  "http://localhost:3000",
+  "https://recruiter.tarassolutions.com",
+  "http://hrportalfrontend.s3-website.ap-south-1.amazonaws.com"
 ];
 
 app.use((req, res, next) => {
@@ -54,6 +55,35 @@ app.use((req, res, next) => {
 
   next();
 });
+
+// const allowedOrigins = [
+//   "http://localhost:3000",                // local frontend
+//   "https://recruiter.tarassolutions.com"  // backend domain
+// ];
+
+// app.use((req, res, next) => {
+//   const origin = req.headers.origin;
+
+//   if (allowedOrigins.includes(origin)) {
+//     res.setHeader("Access-Control-Allow-Origin", origin);
+//   }
+
+//   res.setHeader("Access-Control-Allow-Credentials", "true");
+//   res.setHeader(
+//     "Access-Control-Allow-Methods",
+//     "GET,POST,PUT,DELETE,OPTIONS"
+//   );
+//   res.setHeader(
+//     "Access-Control-Allow-Headers",
+//     "Content-Type, Authorization"
+//   );
+
+//   if (req.method === "OPTIONS") {
+//     return res.sendStatus(200);
+//   }
+
+//   next();
+// });
 
 /* ================= GLOBAL MIDDLEWARE ================= */
 
