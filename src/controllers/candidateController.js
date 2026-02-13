@@ -246,9 +246,33 @@ export const updateCandidate = async (req, res) => {
 
 /* ================= DELETE ================= */
 export const deleteCandidate = async (req, res) => {
-  await pool.query('DELETE FROM candidates WHERE id=?', [req.params.id]);
-  res.json({ success: true });
+  try {
+    const { id } = req.params;
+
+    // 1️⃣ Delete related logs first
+    await pool.query(
+      "DELETE FROM candidate_status_logs WHERE candidate_id = ?",
+      [id]
+    );
+
+    // 2️⃣ Then delete candidate
+    await pool.query(
+      "DELETE FROM candidates WHERE id = ?",
+      [id]
+    );
+
+    res.json({ message: "Candidate deleted successfully" });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error deleting candidate" });
+  }
 };
+
+// export const deleteCandidate = async (req, res) => {
+//   await pool.query('DELETE FROM candidates WHERE id=?', [req.params.id]);
+//   res.json({ success: true });
+// };
 
 // import pool from '../config/database.js';
 
