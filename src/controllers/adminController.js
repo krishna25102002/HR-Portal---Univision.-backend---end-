@@ -24,8 +24,8 @@ export const getUsers = async (req, res) => {
     "SELECT id, name, email, role FROM users"
   );
   res.json(users);
-};
-
+}; 
+ 
 export const updateUser = async (req, res) => {
   const { id } = req.params;
   const { name, email, role } = req.body;
